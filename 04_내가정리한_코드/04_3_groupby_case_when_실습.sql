@@ -1,0 +1,24 @@
+/************************************
+   GROUP BY 실습 - 03(GROUP BY절에 가공 컬럼 및 CASE WHEN 적용)
+*************************************/
+-- EMP 테이블에서 입사년도별 평균 급여 구하기.
+SELECT TO_CHAR(HIREDATE, 'YYYY') AS HIRE_YEAR, AVG(SAL) AS AVG_SAL --, COUNT(*) AS CNT
+FROM HR.EMP
+GROUP BY TO_CHAR(HIREDATE, 'YYYY')
+ORDER BY 1;
+
+
+-- 1000미만, 1000-1999, 2000-2999와 같이 1000단위 범위내에 SAL이 있는 레벨로 GROUP BY 하고 해당 건수를 구함.
+SELECT FLOOR(SAL/1000)*1000, COUNT(*) FROM HR.EMP
+GROUP BY FLOOR(SAL/1000)*1000;
+
+SELECT *, FLOOR(SAL/1000)*1000 AS BIN_RANGE --, SAL/1000, FLOOR(SAL/1000)
+FROM HR.EMP;
+
+-- JOB이 SALESMAN인 경우와 그렇지 않은 경우만 나누어서 평균/최소/최대 급여를 구하기.
+SELECT CASE WHEN JOB = 'SALESMAN' THEN 'SALESMAN'
+            ELSE 'OTHERS' END AS JOB_GUBUN
+     , AVG(SAL) AS AVG_SAL, MAX(SAL) AS MAX_SAL, MIN(SAL) AS MIN_SAL --, COUNT(*) AS CNT
+FROM HR.EMP
+GROUP BY CASE WHEN JOB = 'SALESMAN' THEN 'SALESMAN'
+              ELSE 'OTHERS' END ;
