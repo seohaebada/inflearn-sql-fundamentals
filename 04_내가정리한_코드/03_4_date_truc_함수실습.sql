@@ -1,0 +1,55 @@
+/******************************************************
+DATE_TRUNC 함수를 이용하여 년/월/일/시간/분/초 단위 절삭
+*******************************************************/
+
+SELECT TRUNC(99.9999, 2);
+
+--DATE_TRUNC는 인자로 들어온 기준으로 주어진 날짜를 절삭(?),
+SELECT DATE_TRUNC('DAY', '2022-03-03 14:05:32'::TIMESTAMP)
+
+-- DATE타입을 DATE_TRUNC해도 반환값은 TIMESTAMP타입임.
+SELECT DATE_TRUNC('DAY', TO_DATE('2022-03-03', 'YYYY-MM-DD')) AS DATE_01;
+
+-- 만약 DATE 타입을 그대로 유지하려면 ::DATE로 명시적 형변환
+SELECT DATE_TRUNC('DAY', '2022-03-03'::DATE)::DATE AS DATE_01
+
+-- 월, 년으로 절단.
+SELECT DATE_TRUNC('MONTH', '2022-03-03'::DATE)::DATE AS DATE_01;
+
+-- WEEK의 시작 날짜 구하기. 월요일 기준.
+SELECT DATE_TRUNC('WEEK', '2022-03-03'::DATE)::DATE AS DATE_01;
+
+-- WEEK의 마지막 날짜 구하기. 월요일 기준(일요일이 마지막 날짜)
+SELECT (DATE_TRUNC('WEEK', '2022-03-03'::DATE) + INTERVAL '6 DAYS')::DATE AS DATE_01;
+
+-- WEEK의 시작 날짜 구하기. 일요일 기준.
+SELECT DATE_TRUNC('WEEK', '2022-03-03'::DATE)::DATE -1 AS DATE_01;
+
+-- WEEK의 마지막 날짜 구하기. 일요일 기준(토요일이 마지막 날짜)
+SELECT (DATE_TRUNC('WEEK', '2022-03-03'::DATE)::DATE - 1 + INTERVAL '6 DAYS')::DATE AS DATE_01;
+
+-- MONTH의 마지막 날짜
+SELECT (DATE_TRUNC('MONTH', '2022-03-03'::DATE) + INTERVAL '1 MONTH' - INTERVAL '1 DAY')::DATE;
+
+-- 시분초도 절삭 가능.
+SELECT DATE_TRUNC('HOUR', NOW());
+
+--DATE_TRUNC는 년, 월, 일 단위로 GROUP BY 적용 시 잘 사용됨.
+DROP TABLE IF EXISTS HR.EMP_TEST;
+
+CREATE TABLE HR.EMP_TEST
+AS
+SELECT A.*, HIREDATE + CURRENT_TIME
+FROM HR.EMP A;
+
+SELECT * FROM HR.EMP_TEST;
+
+-- 입사월로 GROUP BY
+SELECT DATE_TRUNC('MONTH', HIREDATE) AS HIRE_MONTH, COUNT(*)
+FROM HR.EMP_TEST
+GROUP BY DATE_TRUNC('MONTH', HIREDATE);
+
+-- 시분초가 포함된 입사일일 경우 시분초를 절삭한 값으로 GROUP BY
+SELECT DATE_TRUNC('DAY', HIREDATE) AS HIRE_DAY, COUNT(*)
+FROM HR.EMP_TEST
+GROUP BY DATE_TRUNC('DAY', HIREDATE);
