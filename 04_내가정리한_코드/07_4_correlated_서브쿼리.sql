@@ -1,0 +1,46 @@
+/************************************************
+              상관(CORRELATED) 서브쿼리
+ *************************************************/
+
+-- 상관 서브쿼리, 주문에서 상품 금액이 100보다 큰 주문을 한 주문 정보
+SELECT * FROM NW.ORDERS A
+WHERE EXISTS (SELECT ORDER_ID FROM NW.ORDER_ITEMS X WHERE A.ORDER_ID = X.ORDER_ID AND X.AMOUNT > 100);
+
+-- 비상관 서브쿼리, 상품 금액이 100보다 큰 주문을 한 주문 정보
+SELECT * FROM NW.ORDERS A WHERE ORDER_ID IN (SELECT ORDER_ID FROM NW.ORDER_ITEMS WHERE AMOUNT > 100);
+
+
+-- 2건 이상 주문을 한 고객 정보
+SELECT * FROM NW.CUSTOMERS A
+WHERE EXISTS (SELECT 1 FROM NW.ORDERS X WHERE X.CUSTOMER_ID = A.CUSTOMER_ID
+              GROUP BY CUSTOMER_ID HAVING COUNT(*) >=2);
+
+
+-- 1997년 이후에 한건이라도 주문을 한 고객 정보
+SELECT * FROM NW.CUSTOMERS A
+WHERE EXISTS (SELECT 1 FROM NW.ORDERS X WHERE X.CUSTOMER_ID = A.CUSTOMER_ID
+                                        AND X.ORDER_DATE >= TO_DATE('19970101', 'YYYYMMDD'));
+
+--1997년 이후에 단 한건도 주문하지 않은 고객 정보
+SELECT * FROM NW.CUSTOMERS A
+WHERE NOT EXISTS (SELECT 1 FROM NW.ORDERS X WHERE X.CUSTOMER_ID = A.CUSTOMER_ID
+                                        AND X.ORDER_DATE >= TO_DATE('19970101', 'YYYYMMDD'));
+-- 조인으로 변환
+SELECT *
+FROM NW.CUSTOMERS A
+	LEFT JOIN (SELECT CUSTOMER_ID FROM NW.ORDERS
+	      WHERE ORDER_DATE >= TO_DATE('19970101', 'YYYYMMDD')
+	      GROUP BY CUSTOMER_ID
+	      ) B ON A.CUSTOMER_ID = B.CUSTOMER_ID
+WHERE B.CUSTOMER_ID IS NULL;
+
+
+-- 직원의 급여이력에서 가장 최근의 급여이력
+SELECT * FROM HR.EMP_SALARY_HIST A WHERE TODATE = (SELECT MAX(TODATE) FROM HR.EMP_SALARY_HIST X
+						   WHERE X.EMPNO = A.EMPNO);
+
+-- 아래는 메인쿼리의 개별 레코드 별로 EMPNO 연결조건으로 단 한건이 아닌 여러건을 반환하므로 수행 오류
+SELECT * FROM HR.EMP_SALARY_HIST A WHERE TODATE = (SELECT TODATE FROM HR.EMP_SALARY_HIST X
+						   WHERE X.EMPNO = A.EMPNO);
+
+
